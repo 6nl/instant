@@ -1,0 +1,114 @@
+<!doctype html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8">
+
+<meta http-equiv="X-UA-Compatible" content="chrome=1">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+<title> Instant </title>
+
+<!--[if lt IE 9]>
+
+<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+
+<![endif]-->
+
+<script src="javascripts/jquery.js"></script>
+
+<script src="javascripts/bootstrap.min.js"></script>
+
+<script src="javascripts/d3.v2.min.js"></script>
+
+<script src="javascripts/scale.fix.js"></script>
+
+<script src="javascripts/jsnetworkx.js"></script>
+
+</head>
+<body>
+
+<script type="text/javascript">
+
+var G;
+var q;
+
+function expand(node) {
+//	$.getJSON("http://google.com/complete/search?output=firefox&q="+node,
+	$.getJSON("http://api.bing.com/osjson.aspx?query="+node,
+		 function(responsedata) {
+
+					var results = responsedata[1];
+			
+					for (var i in results) {
+			
+						//if(results[i].substr(0,q.length) == q)
+						//	result=results[i].substr(q.length) 
+						//	else
+							result=results[i];
+				 
+						G.add_node(result,{color: '#00864C7', shape:'^', radius:1}); 
+						G.add_edge(node, result, {'stroke-width': 2});   
+						if( node == q )  // top level
+							expand(results[i]);
+					}   
+					d3.selectAll('.node').on('mouseover', function(d) {expand(d.node);  });   
+		}      
+	);
+}
+
+function render() {
+	
+
+	
+	G = new jsnx.DiGraph();
+
+	q = document.form.query.value;
+	
+	G.add_node(q, {color:'#008A00', radius:50, shape:'o'});  
+	
+	expand(q);
+
+	jsnx.forEach(G.nodes_iter(), function(node) {
+		if(node != q) {
+
+		expand(node);
+		};
+	});
+
+	jsnx.draw(G,
+		{
+			element: '#canvas', 
+			with_labels: true, 
+			node_attr: {
+				r: function(d) { return d.data.radius;}
+	//			cx: function(d) { return d.data.cx;},
+	//			cy: function(d) { return d.data.cy;},
+	//			title: function(d) { return d.label;},
+	//			class: function(d) { return d.data.class;},
+	//			fill: function(d) { return d.data.color;},
+	//			shape: function(d) { return d.data.shape;}
+			},
+			label_style: {fill: 'grey' },
+			edge_style: {'stroke-width': 2}
+		},
+		true);  
+		
+
+}
+    
+</script>
+
+<form name="form">
+Your query: <input type="text" name="query" \>
+<input type="button" value="Submit" onClick="render();" \>
+</form>
+
+<div id="canvas"><div class="description"></div></div>
+
+</body>
+</html>
+
